@@ -1,0 +1,66 @@
+services:
+  database:
+    image: postgres:18-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_SUPERUSER:-db_superuser}
+      POSTGRES_PASSWORD: ${DB_SUPERUSER_PASSWORD:-db_superuser_password}
+      POSTGRES_DB: ${DATABASE_A:-tenant_a}
+      DB_USER: ${DB_USER:-pipeline_user}
+      DB_PASSWORD: ${DB_PASSWORD:-pipeline_password}
+    volumes:
+      - postgres_data:/var/lib/postgresql
+      - ./init.sh:/docker-entrypoint-initdb.d/init.sh
+    networks:
+      - private_net
+    healthcheck:
+      # The first time the volume is built, PostgreSQL will be initialized in the UNIX socket and restart
+      # We can catch the exact moment the service is ready after this restart by binding the test
+      # to localhost (once the container is built)
+      test: ["CMD-SHELL", "pg_isready -h 127.0.0.1 -U ${DB_SUPERUSER:-db_superuser} -d ${DATABASE_A:-tenant_a}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+  db-migrate:
+    build: .
+    # Connect the migrations container to the main pipeline built
+    image: pipeline-image:latest
+    env_file:
+      - path: .env
+        required: false
+    networks:
+      - private_net
+    command: python scripts/migrations.py
+    depends_on:
+      database:
+        condition: service_healthy
+  
+  elt-etl-pipeline:
+    build: .
+    image: pipeline-image:latest
+    environment:
+      DB_SUPERUSER: ${DB_SUPERUSER:-db_superuser}
+      DB_SUPERUSER_PASSWORD: ${DB_SUPERUSER_PASSWORD:-db_superuser_password}
+      DB_USER: ${DB_USER:-pipeline_user}
+      DB_PASSWORD: ${DB_PASSWORD:-pipeline_password}
+      DB_HOST: ${DB_HOST:-database}
+      DB_PORT: ${DB_PORT:-5432}
+      DATABASE_A: ${DATABASE_A:-tenant_a}
+      DATABASE_B: ${DATABASE_B:-tenant_b}
+    networks:
+      - private_net
+    volumes:
+      - ./data:/src/data
+    command: python src/orchestrator.py
+    depends_on:
+      database:
+        condition: service_healthy
+      db-migrate:
+        condition: service_completed_successfully
+
+volumes:
+  postgres_data:
+
+networks:
+  private_net:
+    internal: true

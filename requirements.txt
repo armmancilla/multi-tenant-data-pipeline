@@ -1,0 +1,13 @@
+pandas
+pydantic
+pydantic[email]
+pydantic_settings
+pytest==8.4.2
+pytest-asyncio
+pytest-mock
+python-multipart==0.0.20
+python_dateutil==2.9.0.post0
+testcontainers
+yoyo_migrations==9.0.0
+# Needed for yoyo-migrations
+psycopg2-binary

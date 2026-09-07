@@ -1,0 +1,39 @@
+# --- ENV VARIABLES ---
+.env
+.env.*
+*.env
+venv/
+env/
+.venv/
+
+
+# --- PYTHON FILES ---
+
+__pycache__/
+*.py[cod]
+*$py.class
+
+
+# --- IDE Settings ---
+
+.vscode/
+
+
+# --- OS JUNK ---
+
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+
+# --- LOGS ---
+
+*.log
+logs/
+
+
+# --- DATA ---
+data/*
+!data/tenant_a/sample_leads.csv
+!data/tenant_b/sample_leads.csv
+!data/.gitkeep

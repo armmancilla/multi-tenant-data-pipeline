@@ -1,0 +1,24 @@
+-- GIT FILES --
+
+.git
+.gitignore
+
+
+-- PYTHON FILES --
+
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.pytest_cache/
+
+-- ENV VARIABLES --
+
+env/
+venv/
+.env
+
+-- TESTING FILES --
+
+tests/
